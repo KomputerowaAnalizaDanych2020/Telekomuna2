@@ -35,7 +35,11 @@ def split_data(data_bytes):
     for packetnr in range(int(len(data_bytes)/128) + (len(data_bytes)%128 > 0)):
         packetarray = bytearray()
         for byte in range(128):
-            packetarray.append(data_bytes[byte*packetnr])
+            print(byte+128*packetnr)
+            if(byte+128*packetnr<len(data_bytes)):
+                packetarray.append(data_bytes[byte+128*packetnr])
+            else:
+                packetarray.append(0)
         packets.append(packetarray)
     return packets
 
@@ -51,7 +55,6 @@ def send_packet(packet_to_send,numberp):
     ser.write(bytes(numberp))
     ser.write(bytes(255-numberp))
     ser.write(packet_to_send)
-    ser.write(crc16(packet_to_send))
     ser.flush()
     answer = ser.read(1)
     print(answer)
@@ -65,6 +68,7 @@ packet_number=0
 for bitpack in returnetpackets:
     #print(bitpack)
     #print(crc16(bitpack))
+    print(bitpack)
     send_packet(bitpack,packet_number)
     packet_number += 1
 ser.write(EOT)
