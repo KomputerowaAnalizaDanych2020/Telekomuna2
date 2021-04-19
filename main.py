@@ -14,6 +14,12 @@ ACK=bytearray.fromhex("06")
 NAK=bytearray.fromhex("15")
 CAN=bytearray.fromhex("18")
 C=bytearray.fromhex("43")
+def checksuma(data: bytearray):
+    temp_sum =0
+    for byte in data:
+        temp_sum+=int(byte)
+        #print(temp_sum)
+    return temp_sum % 256
 
 def crc16(data: bytearray, poly=0x8408):
     crc = 0xFFFF
@@ -34,7 +40,6 @@ def split_data(data_bytes):
     for packetnr in range(int(len(data_bytes)/128) + (len(data_bytes)%128 > 0)):
         packetarray = bytearray()
         for byte in range(128):
-            print(byte+128*packetnr)
             if(byte+128*packetnr<len(data_bytes)):
                 packetarray.append(data_bytes[byte+128*packetnr])
             else:
@@ -49,16 +54,27 @@ def read_file(path):
     return bytesfile
 
 def send_packet(packet_to_send,numberp):
+    while True:
+        header = bytearray()
+        header.append(int.from_bytes(SOH,'big'))
+        header.append(numberp+1)
+        header.append(254-numberp)
+        suma=checksuma(packet_to_send)
+        print(suma)
+        full=header+packet_to_send
+        full.append(suma)
+        ser.write(full)
+        print(full)
+        print(len(full))
+        ser.flush()
+        answer = ser.read()
+        print(answer)
+        if answer == ACK:
+            break
+        if answer == CAN:
+            break
 
-    ser.write(SOH)
-    ser.write(bytes(numberp))
-    ser.write(bytes(255-numberp))
-    ser.write(packet_to_send)
-    ser.write(crc16(packet_to_send))
-    ser.flush()
-    answer = ser.read(1)
-    print(answer)
-    print(numberp)
+        #print(numberp)
 
 
 path='test.txt'
@@ -68,8 +84,12 @@ packet_number=0
 for bitpack in returnetpackets:
     #print(bitpack)
     #print(crc16(bitpack))
-    print(bitpack)
-    send_packet(bitpack,packet_number)
+    while 1:
+
+        if ser.read()==NAK:
+            print(ser.read())
+            send_packet(bitpack,packet_number)
+            break
     packet_number += 1
 ser.write(EOT)
 
