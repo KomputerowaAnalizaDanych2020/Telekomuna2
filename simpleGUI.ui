@@ -152,7 +152,7 @@
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="Paritybutton">
-                    <property name="accelerator">choiceParity</property>
+                    <property name="command" type="command" cbtype="simple">choiceParity</property>
                     <property name="label" translatable="yes">Suma kontrolna</property>
                   </object>
                 </child>
