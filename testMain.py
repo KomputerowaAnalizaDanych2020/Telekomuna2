@@ -34,6 +34,26 @@ class SimpleguiApp:
     def run(self):
         self.mainwindow.mainloop()
 
+    # Wybór COMa
+    def choiceCOM1(self):
+        ser.port = 'COM1'
+
+    def choiceCOM2(self):
+        ser.port = 'COM2'
+
+    def choiceCOM3(self):
+        ser.port = 'COM3'
+
+    # Wybór bitu stopu
+    def one(self):
+        ser.stopbits = serial.STOPBITS_ONE
+
+    def onePointFive(self):
+        ser.stopbits = serial.STOPBITS_ONE_POINT_FIVE
+
+    def two(self):
+        ser.stopbits = serial.STOPBITS_TWO
+
     def loadFile(self):
         # Wybor pliku do otwarcia poprzez menu
         root.filename = filedialog.askopenfilename(initialdir="/", title="Wybierz plik", filetypes='')
@@ -43,31 +63,11 @@ class SimpleguiApp:
         # Wybor pliku do zapisu poprzez menu
         root.filename = filedialog.asksaveasfilename(initialdir="/", title="Wybierz plik")
 
-    # Wybór COMa
-    def choiceCOM1(self):
-        root.quit()
-
-    def choiceCOM2(self):
-        root.quit()
-
-    def choiceCOM3(self):
-        root.quit()
-
     # Wybór trybu
     def choiceCRC(self):
         root.quit()
 
     def choiceCRC(self):
-        root.quit()
-
-    # Wybór bitu stopu
-    def one(self):
-        root.quit()
-
-    def onePointFive(self):
-        root.quit()
-
-    def two(self):
         root.quit()
 
 
