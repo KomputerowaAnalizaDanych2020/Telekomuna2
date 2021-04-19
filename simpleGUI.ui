@@ -1,0 +1,306 @@
+<?xml version='1.0' encoding='utf-8'?>
+<interface version="1.1">
+  <object class="ttk.Frame" id="background">
+    <property name="height">200</property>
+    <property name="padding">10</property>
+    <property name="width">200</property>
+    <layout manager="pack">
+      <property name="propagate">True</property>
+      <property name="side">top</property>
+    </layout>
+    <child>
+      <object class="ttk.Label" id="header">
+        <property name="font">{times new roman} 16 {bold}</property>
+        <property name="justify">center</property>
+        <property name="takefocus">true</property>
+        <property name="text" translatable="yes">Tytul</property>
+        <layout manager="grid">
+          <property name="column">0</property>
+          <property name="propagate">True</property>
+          <property name="row">0</property>
+          <property name="sticky">e</property>
+          <property type="row" id="0" name="pad">0</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Frame" id="chooseFile">
+        <property name="height">300</property>
+        <property name="width">400</property>
+        <layout manager="grid">
+          <property name="column">0</property>
+          <property name="propagate">True</property>
+          <property name="row">1</property>
+        </layout>
+        <child>
+          <object class="ttk.Label" id="text1">
+            <property name="text" translatable="yes">Odczyt z pliku:</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="pady">5</property>
+              <property name="propagate">True</property>
+              <property name="row">1</property>
+              <property name="sticky">w</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Menubutton" id="choiceCOM">
+            <property name="takefocus">false</property>
+            <property name="text" translatable="yes">COM</property>
+            <layout manager="grid">
+              <property name="column">1</property>
+              <property name="padx">10</property>
+              <property name="pady">5</property>
+              <property name="propagate">True</property>
+              <property name="row">2</property>
+              <property name="sticky">e</property>
+            </layout>
+            <child>
+              <object class="tk.Menu" id="menu1">
+                <child>
+                  <object class="tk.Menuitem.Command" id="COM1button">
+                    <property name="command" type="command" cbtype="simple">choiceCOM1</property>
+                    <property name="label" translatable="yes">COM1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="COM2button">
+                    <property name="command" type="command" cbtype="simple">choiceCOM2</property>
+                    <property name="label" translatable="yes">COM2</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="COM3button">
+                    <property name="command" type="command" cbtype="simple">choiceCOM3</property>
+                    <property name="label" translatable="yes">COM3</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Label" id="text2">
+            <property name="text" translatable="yes">Port COM:</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="pady">5</property>
+              <property name="propagate">True</property>
+              <property name="row">2</property>
+              <property name="sticky">w</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Button" id="button3">
+            <property name="command" type="command" cbtype="simple">loadFile</property>
+            <property name="compound">top</property>
+            <property name="text" translatable="yes">Wybierz plik</property>
+            <layout manager="grid">
+              <property name="column">1</property>
+              <property name="padx">10</property>
+              <property name="pady">5</property>
+              <property name="propagate">False</property>
+              <property name="row">1</property>
+              <property name="sticky">e</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Label" id="text3">
+            <property name="text" translatable="yes">Zapis do pliku:</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="pady">5</property>
+              <property name="propagate">False</property>
+              <property name="row">3</property>
+              <property name="sticky">w</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Label" id="text4">
+            <property name="text" translatable="yes">Tryb:</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="pady">5</property>
+              <property name="propagate">True</property>
+              <property name="row">4</property>
+              <property name="sticky">w</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Menubutton" id="choiceMode">
+            <property name="text" translatable="yes">Tryb</property>
+            <layout manager="grid">
+              <property name="column">1</property>
+              <property name="padx">10</property>
+              <property name="pady">5</property>
+              <property name="propagate">True</property>
+              <property name="row">4</property>
+              <property name="sticky">e</property>
+            </layout>
+            <child>
+              <object class="tk.Menu" id="menu2">
+                <child>
+                  <object class="tk.Menuitem.Command" id="CRCbutton">
+                    <property name="command" type="command" cbtype="simple">choiceCRC</property>
+                    <property name="label" translatable="yes">CRC</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="Paritybutton">
+                    <property name="accelerator">choiceParity</property>
+                    <property name="label" translatable="yes">Suma kontrolna</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Button" id="button5">
+            <property name="command" type="command" cbtype="simple">saveFile</property>
+            <property name="text" translatable="yes">Wybierz plik</property>
+            <layout manager="grid">
+              <property name="column">1</property>
+              <property name="padx">10</property>
+              <property name="pady">5</property>
+              <property name="propagate">True</property>
+              <property name="row">3</property>
+              <property name="sticky">e</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Label" id="text5">
+            <property name="text" translatable="yes">Bity stopu:
+</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="pady">5</property>
+              <property name="propagate">True</property>
+              <property name="row">5</property>
+              <property name="sticky">w</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Menubutton" id="choiceBits">
+            <property name="text" translatable="yes">Bit stopu</property>
+            <layout manager="grid">
+              <property name="column">1</property>
+              <property name="padx">10</property>
+              <property name="pady">5</property>
+              <property name="propagate">True</property>
+              <property name="row">5</property>
+              <property name="sticky">e</property>
+            </layout>
+            <child>
+              <object class="tk.Menu" id="menu3">
+                <child>
+                  <object class="tk.Menuitem.Command" id="oneButton">
+                    <property name="command" type="command" cbtype="simple">one</property>
+                    <property name="label" translatable="yes">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="onePointFiveButton">
+                    <property name="command" type="command" cbtype="simple">onePointFive</property>
+                    <property name="label" translatable="yes">1.5</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="twoButton">
+                    <property name="command" type="command" cbtype="simple">two</property>
+                    <property name="label" translatable="yes">2</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Frame" id="podpis">
+        <property name="height">200</property>
+        <property name="width">200</property>
+        <layout manager="grid">
+          <property name="column">0</property>
+          <property name="propagate">True</property>
+          <property name="row">3</property>
+        </layout>
+        <child>
+          <object class="ttk.Label" id="text6">
+            <property name="text" translatable="yes">Autorzy: Daniel Malicki, Maciej Wlodarczyk</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="propagate">True</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Frame" id="frame9">
+        <property name="height">200</property>
+        <property name="width">200</property>
+        <layout manager="grid">
+          <property name="column">1</property>
+          <property name="propagate">True</property>
+          <property name="row">1</property>
+        </layout>
+        <child>
+          <object class="ttk.Frame" id="frame10">
+            <property name="height">200</property>
+            <property name="width">200</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="propagate">True</property>
+              <property name="row">0</property>
+            </layout>
+            <child>
+              <object class="ttk.Label" id="text7">
+                <property name="text" translatable="yes">Logi:
+</property>
+                <layout manager="pack">
+                  <property name="propagate">True</property>
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Frame" id="frame11">
+            <property name="height">200</property>
+            <property name="width">200</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="propagate">True</property>
+              <property name="row">1</property>
+            </layout>
+            <child>
+              <object class="tk.Text" id="text8">
+                <property name="autoseparators">false</property>
+                <property name="blockcursor">false</property>
+                <property name="font">TkDefaultFont</property>
+                <property name="height">10</property>
+                <property name="state">normal</property>
+                <property name="width">32</property>
+                <layout manager="pack">
+                  <property name="propagate">True</property>
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
