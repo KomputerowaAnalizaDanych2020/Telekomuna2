@@ -34,11 +34,11 @@ CAN = bytearray.fromhex("18")
 C = bytearray.fromhex("43")
 
 '''
-
-def read_file(path):
+def read_file():
     f = open(path, "rb")
     bytesfile=f.read()
     return bytesfile
+
 
 # Parzystość bitów
 def checksuma(data: bytearray):
@@ -159,6 +159,7 @@ class SimpleguiApp:
     def two(self):
         ser.stopbits = serial.STOPBITS_TWO
 
+    # Wybór pliku, na którym operujemy
     def loadFile(self):
         # Wybor pliku do otwarcia poprzez menu
         root.filename = filedialog.askopenfilename(initialdir="/", title="Wybierz plik", filetypes='')
@@ -172,6 +173,13 @@ class SimpleguiApp:
         root.quit()
 
     def choiceParity(self):
+        root.quit()
+
+    # Główne funkcje
+    def sendFile(self):
+        root.quit()
+
+    def receiveFile(self):
         root.quit()
 
 
