@@ -31,7 +31,6 @@ def crc16(data: bytearray, poly=0x8408):
     return crc & 0xFFFF
 def split_data(data_bytes):
     packets=[]
-    bytearray
     for packetnr in range(int(len(data_bytes)/128) + (len(data_bytes)%128 > 0)):
         packetarray = bytearray()
         for byte in range(128):
@@ -55,6 +54,7 @@ def send_packet(packet_to_send,numberp):
     ser.write(bytes(numberp))
     ser.write(bytes(255-numberp))
     ser.write(packet_to_send)
+    ser.write(crc16(packet_to_send))
     ser.flush()
     answer = ser.read(1)
     print(answer)
