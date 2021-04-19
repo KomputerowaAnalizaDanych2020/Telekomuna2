@@ -8,6 +8,13 @@ ser = serial.Serial(
     timeout=1
 )
 
+SOH=bytearray.fromhex("01")
+EOT=bytearray.fromhex("04")
+ACK=bytearray.fromhex("06")
+NAK=bytearray.fromhex("15")
+CAN=bytearray.fromhex("18")
+C=bytearray.fromhex("43")
+
 def crc16(data: bytearray, poly=0x8408):
     crc = 0xFFFF
     for b in data:
@@ -25,7 +32,7 @@ def crc16(data: bytearray, poly=0x8408):
 def split_data(data_bytes):
     packets=[]
     bytearray
-    for packetnr in range(int(len(data_bytes)/128)):
+    for packetnr in range(int(len(data_bytes)/128) + (len(data_bytes)%128 > 0)):
         packetarray = bytearray()
         for byte in range(128):
             packetarray.append(data_bytes[byte*packetnr])
@@ -38,18 +45,29 @@ def read_file(path):
     bytesfile=f.read()
     return bytesfile
 
-def send_packet(packet_to_send):
+def send_packet(packet_to_send,numberp):
+
+    ser.write(SOH)
+    ser.write(bytes(numberp))
+    ser.write(bytes(255-numberp))
     ser.write(packet_to_send)
+    ser.write(crc16(packet_to_send))
+    ser.flush()
+    answer = ser.read(1)
+    print(answer)
+    print(numberp)
 
 
-
-path='test1.bmp'
+path='test.txt'
 databytes=read_file(path)
 returnetpackets=split_data(databytes)
+packet_number=0
 for bitpack in returnetpackets:
     #print(bitpack)
     #print(crc16(bitpack))
-    send_packet(bitpack)
+    send_packet(bitpack,packet_number)
+    packet_number += 1
+ser.write(EOT)
 
 """
 if ser.isOpen():
