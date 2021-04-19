@@ -1,6 +1,8 @@
 from crccheck.crc import Crc32, CrcXmodem
 from crccheck.checksum import Checksum32
 import serial
+import time
+
 ser = serial.Serial(
     port='COM2',
     baudrate=9600,
@@ -57,9 +59,17 @@ def read_file(path):
     bytesfile=f.read()
     return bytesfile
 
+def crc16_mine(packet_to_check):
+    checkarray=bytearray()
+    crcinst = CrcXmodem()
+    crcinst.process(packet_to_check)
+    suma = crcinst.final()
+    checkarray.append((suma >> 8) & 0xff)
+    checkarray.append(suma & 0xff)
+    return checkarray
+
 
 def send_packet(packet_to_send,numberp,mode):
-    crcinst = CrcXmodem()
     while True:
         header = bytearray()
         header.append(int.from_bytes(SOH,'big'))
@@ -67,10 +77,7 @@ def send_packet(packet_to_send,numberp,mode):
         header.append(254-numberp)
         full=header+packet_to_send
         if mode==C:
-            suma = crcinst.final()
-            crcinst.process(packet_to_send)
-            full.append((suma>>8) & 0xff)
-            full.append(suma & 0xff)
+            full=full+crc16_mine(packet_to_send)
         if mode==NAK:
             full.append(checksuma(packet_to_send))
         ser.write(full)
@@ -83,6 +90,7 @@ def send_packet(packet_to_send,numberp,mode):
             break
         if answer == CAN:
             break
+
 
 path = 'test1.bmp'
 
@@ -101,4 +109,75 @@ def send_data(path):
         send_packet(bitpack,packet_number,mode)
         packet_number += 1
     ser.write(EOT)
-send_data(path)
+
+def start_recive(mode):
+    while 1:
+        time.sleep(1)
+        ser.write(mode)
+        initial_recive = ser.read()
+        if initial_recive == SOH:
+            return initial_recive
+
+
+def recive_data(path,mode):
+    initial_recive=start_recive(mode)
+    file_bytes=bytearray()
+    while 1:
+        data_pack=recive_packet(mode,initial_recive)
+        if data_pack:
+            file_bytes=file_bytes+data_pack
+        initial_recive=ser.read()
+        if initial_recive==EOT:
+            break
+    print(file_bytes)
+    f = open("sample.bmp", "wb")
+    f.write(file_bytes)
+    f.close()
+
+
+def recive_packet(mode,initial_recive):
+    recived_header = bytearray()
+    recived_header+=initial_recive
+    recived_header+=ser.read()
+    recived_header+=ser.read()
+    packet = recive_data_packet()
+    if check_packet(mode, packet) == True:
+        return packet
+    return False
+
+
+def recive_data_packet():
+    packet_arr=bytearray()
+    for byte in range(128):
+        packet_arr+=ser.read()
+    return packet_arr
+
+
+def check_packet(mode,packet):
+    if mode == NAK:
+        check=bytearray()
+        check+=ser.read()
+        selfcheck=bytearray()
+        selfcheck.append(checksuma(packet))
+        if selfcheck[0]==check[0]:
+            ser.write(ACK)
+            print(1)
+            return True
+        else:
+            ser.write(NAK)
+            print(2)
+            return False
+    elif mode == C:
+        check=bytearray()
+        check+=ser.read()
+        check+=ser.read()
+        crc16=crc16_mine(packet)
+        for byte in range(2):
+            if crc16[byte]!=check[byte]:
+                ser.write(NAK)
+                return False
+            ser.write(ACK)
+            return True
+
+
+recive_data(path,C)
