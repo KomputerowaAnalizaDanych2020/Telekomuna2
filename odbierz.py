@@ -1,6 +1,6 @@
 import serial
 ser = serial.Serial(
-    port='COM2',
+    port='COM1',
     baudrate=9600,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
@@ -13,7 +13,8 @@ ACK=bytearray.fromhex("06")
 NAK=bytearray.fromhex("15")
 CAN=bytearray.fromhex("18")
 C=bytearray.fromhex("43")
-ser.write(NAK)
+ser.write(C)
 while 1:
+
     answer = ser.read()
     print(answer)

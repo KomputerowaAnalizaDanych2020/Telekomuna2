@@ -1,3 +1,5 @@
+from crccheck.crc import Crc32, CrcXmodem
+from crccheck.checksum import Checksum32
 import serial
 ser = serial.Serial(
     port='COM2',
@@ -21,8 +23,8 @@ def checksuma(data: bytearray):
         #print(temp_sum)
     return temp_sum % 256
 
-def crc16(data: bytearray, poly=0x8408):
-    crc = 0xFFFF
+def crc16(data: bytearray, poly=0x1021):
+    crc = 0x0000
     for b in data:
         cur_byte = 0xFF & b
         for _ in range(0, 8):
@@ -59,10 +61,13 @@ def send_packet(packet_to_send,numberp):
         header.append(int.from_bytes(SOH,'big'))
         header.append(numberp+1)
         header.append(254-numberp)
-        suma=checksuma(packet_to_send)
+        suma=crcinst.final()
+        crcinst.process(packet_to_send)
         print(suma)
+        print(crcinst.finalhex())
         full=header+packet_to_send
-        full.append(suma)
+        full.append((suma>>8) & 0xff)
+        full.append(suma & 0xff)
         ser.write(full)
         print(full)
         print(len(full))
@@ -76,7 +81,7 @@ def send_packet(packet_to_send,numberp):
 
         #print(numberp)
 
-
+crcinst=CrcXmodem()
 path='test.txt'
 databytes=read_file(path)
 returnetpackets=split_data(databytes)
@@ -86,7 +91,7 @@ for bitpack in returnetpackets:
     #print(crc16(bitpack))
     while 1:
 
-        if ser.read()==NAK:
+        if ser.read()==C:
             print(ser.read())
             send_packet(bitpack,packet_number)
             break
