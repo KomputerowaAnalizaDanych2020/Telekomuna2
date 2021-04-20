@@ -119,7 +119,7 @@ def start_recive(mode):
             return initial_recive
 
 
-def recive_data(savepath, mode):
+def recive_data(savepath, mode=NAK):
     initial_recive = start_recive(mode)
     file_bytes = bytearray()
     while 1:
