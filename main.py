@@ -85,6 +85,7 @@ def send_packet(packet_to_send, numberp, mode):
         full = header + packet_to_send
         if mode == C:
             full = full + crc16_mine(packet_to_send)
+            tempc16 = bytearray()
         if mode == NAK:
             full.append(checksuma(packet_to_send))
         ser.write(full)
@@ -192,5 +193,5 @@ def check_packet(mode, packet):
 
 pathw = 'odb.bmp'
 pathr = 'test1.bmp'
-recive_data(pathw, NAK)
-#send_data(pathr)
+#recive_data(pathw, NAK)
+send_data(pathr)

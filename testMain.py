@@ -4,9 +4,8 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog
 import serial
-
-from crccheck.crc import Crc32, CrcXmodem
-from crccheck.checksum import Checksum32
+import time
+from crccheck.crc import CrcXmodem
 
 '''
 GUI napisane przy pomocy biblioteki tkinter oraz pygubu designer
@@ -33,105 +32,13 @@ NAK = bytearray.fromhex("15")
 CAN = bytearray.fromhex("18")
 C = bytearray.fromhex("43")
 
-'''
-V
-def read_file(self):
-     f = open(root.filename, "rb")
-     bytesfile = f.read()
-     return bytesfile
 
-V
-# Parzystość bitów
-def checksuma(data: bytearray):
-    temp_sum = 0
-    for byte in data:
-        temp_sum += int(byte)
-        # print(temp_sum)
-    return temp_sum % 256
-
-
-# Podział danych na pakiety
-def split_data(data_bytes):
-    packets = []
-    for packetnr in range(int(len(data_bytes) / 128) + (len(data_bytes) % 128 > 0)):
-        packetarray = bytearray()
-        for byte in range(128):
-            if (byte + 128 * packetnr < len(data_bytes)):
-                packetarray.append(data_bytes[byte + 128 * packetnr])
-            else:
-                packetarray.append(0)
-        packets.append(packetarray)
-    return packets
-
-
-# Funkcja służaca wysłaniu pakietu
-def send_packet(packet_to_send, numberp):
-    while True:
-        header = bytearray()
-        header.append(int.from_bytes(SOH, 'big'))
-        header.append(numberp+1)
-        header.append(254-numberp)
-        suma = crcinst.final()
-        crcinst.process(packet_to_send)
-        print(suma)
-        print(crcinst.finalhex())
-        full = header+packet_to_send
-        full.append((suma >> 8) & 0xff)
-        full.append(suma & 0xff)
-        ser.write(full)
-        print(full)
-        print(len(full))
-        ser.flush()
-        answer = ser.read()
-        print(answer)
-        if answer == ACK:
-            break
-        if answer == CAN:
-            break
-
-        #print(numberp)
-
-
-# Funkcja odpowiadająca za CRC
-def crc16(data: bytearray, poly=0x1021):
-    crc = 0x0000
-    for b in data:
-        cur_byte = 0xFF & b
-        for _ in range(0, 8):
-            if (crc & 0x0001) ^ (cur_byte & 0x0001):
-                crc = (crc >> 1) ^ poly
-            else:
-                crc >>= 1
-            cur_byte >>= 1
-    crc = (~crc & 0xFFFF)
-    crc = (crc << 8) | ((crc >> 8) & 0xFF)
-    
-    return crc & 0xFFFF
-
-
-crcinst = CrcXmodem()
-path = 'test.txt'
-databytes=read_file(path)
-returnetpackets=split_data(databytes)
-packet_number = 0
-for bitpack in returnetpackets:
-    #print(bitpack)
-    #print(crc16(bitpack))
-    while 1:
-
-        if ser.read() == C:
-            print(ser.read())
-            send_packet(bitpack, packet_number)
-            break
-    packet_number += 1
-ser.write(EOT)
-
-'''
 
 # Klasa GUI
 class SimpleguiApp:
     def __init__(self, parent):
         self.filename='test.txt'
+        self.choicemode=NAK
         self.builder = builder = pygubu.Builder()
         builder.add_resource_path(PROJECT_PATH)
         builder.add_from_file(PROJECT_UI)
@@ -144,48 +51,63 @@ class SimpleguiApp:
     # Wybór COMa
     def choiceCOM1(self):
         ser.port = 'COM1'
+        print("WYBRANO COM1")
+
 
     def choiceCOM2(self):
         ser.port = 'COM2'
+        print("WYBRANO COM2")
+
 
     def choiceCOM3(self):
         ser.port = 'COM3'
+        print("WYBRANO COM3")
+
 
     # Wybór bitu stopu
     def one(self):
         ser.stopbits = serial.STOPBITS_ONE
+        print("1 BIT STOPU")
 
     def onePointFive(self):
         ser.stopbits = serial.STOPBITS_ONE_POINT_FIVE
+        print("1.5 BIT STOPU")
 
     def two(self):
         ser.stopbits = serial.STOPBITS_TWO
+        print("2 BIT STOPU")
 
-    '''
+    # Wybór pliku, na którym operujemy
+    def loadFile(self):
+        # Wybor pliku do otwarcia poprzez menu
+        self.filename = filedialog.askopenfilename(initialdir="/", title="Wybierz plik", filetypes='')
+
+    def saveFile(self):
+        # Wybor pliku do zapisu poprzez menu
+        self.filename = filedialog.asksaveasfilename(initialdir="/", title="Wybierz plik")
+
+    # Wybór trybu
+    def choiceCRC(self):
+        self.choicemode=C
+        print("TRYB CRC16")
+
+    def choicechecksum(self):
+        self.choicemode=NAK
+        print("TRYB CHECKSUM")
+
+    # Główne funkcje
+    def sendFile(self):
+        self.send_data()
+
+    def receiveFile(self):
+        self.recive_data()
+
     # Funkcja czytająca z pliku
     def read_file(self):
-        f = open(root.filename, "rb")
+        f = open(self.filename, "rb")
         bytesfile = f.read()
         return bytesfile
 
-    # Funkcja wysyłająca plik
-    def sendFile(self):
-        crcinst = CrcXmodem()
-        path = 'test.txt'
-        databytes = root.read_file()
-        returnetpackets = root.split_data(root, databytes)
-        packet_number = 0
-        for bitpack in returnetpackets:
-            # print(bitpack)
-            # print(crc16(bitpack))
-            while 1:
-
-                if ser.read() == C:
-                    print(ser.read())
-                    root.send_packet(bitpack, packet_number)
-                    break
-            packet_number += 1
-        ser.write(EOT)
 
     # Podział danych na pakiety
     def split_data(self, data_bytes):
@@ -200,19 +122,17 @@ class SimpleguiApp:
             packets.append(packetarray)
         return packets
 
-    def send_packet(self, packet_to_send, numberp):
+    def send_packet(self, packet_to_send, numberp,mode):
         while True:
             header = bytearray()
             header.append(int.from_bytes(SOH, 'big'))
             header.append(numberp + 1)
             header.append(254 - numberp)
-            suma = crcinst.final()
-            crcinst.process(packet_to_send)
-            print(suma)
-            print(crcinst.finalhex())
             full = header + packet_to_send
-            full.append((suma >> 8) & 0xff)
-            full.append(suma & 0xff)
+            if mode == C:
+                full = full + self.crc16_mine(packet_to_send)
+            if mode == NAK:
+                full.append(self.checksuma(packet_to_send))
             ser.write(full)
             print(full)
             print(len(full))
@@ -224,7 +144,24 @@ class SimpleguiApp:
             if answer == CAN:
                 break
 
-            # print(numberp)
+    def send_data(self):
+        # Zczytujemy dane pliku i dzielimy na pakiety
+        databytes = self.read_file()
+        returnetpackets = self.split_data(databytes)
+        packet_number = 0
+        initial_answer = ser.read()
+        while initial_answer != C and initial_answer != NAK:
+            initial_answer = ser.read()
+            print(initial_answer)
+            continue
+        mode = initial_answer
+        for bitpack in returnetpackets:
+            ser.flush()
+            self.send_packet(bitpack, packet_number, mode)
+            packet_number += 1
+        # Po zakończeniu transmisji wysyłamy sygnał End Of Transmission
+        ser.write(EOT)
+
 
     def crc16(self, data: bytearray, poly=0x1021):
         crc = 0x0000
@@ -240,34 +177,93 @@ class SimpleguiApp:
         crc = (crc << 8) | ((crc >> 8) & 0xFF)
 
         return crc & 0xFFFF
-    '''
 
-    # Wybór pliku, na którym operujemy
-    def loadFile(self):
-        # Wybor pliku do otwarcia poprzez menu
-        root.filename = filedialog.askopenfilename(initialdir="/", title="Wybierz plik", filetypes='')
+    def checksuma(self, data: bytearray):
+        temp_sum = 0
+        for byte in data:
+            temp_sum += int(byte)
+        return temp_sum % 256
 
-    def saveFile(self):
-        # Wybor pliku do zapisu poprzez menu
-        root.filename = filedialog.asksaveasfilename(initialdir="/", title="Wybierz plik")
+    def crc16_mine(self, packet_to_check):
+        checkarray = bytearray()
+        crcinst = CrcXmodem()
+        crcinst.process(packet_to_check)
+        suma = crcinst.final()
+        checkarray.append((suma >> 8) & 0xff)
+        checkarray.append(suma & 0xff)
+        return checkarray
 
-    # Wybór trybu
-    def choiceCRC(self):
-        root.quit()
+    def start_recive(self, mode):
+        while 1:
+            time.sleep(1)
+            ser.write(mode)
+            initial_recive = ser.read()
+            if initial_recive == SOH:
+                return initial_recive
 
-    def choiceParity(self):
-        root.quit()
+    def recive_data(self, mode=NAK):
+        initial_recive = self.start_recive(mode)
+        file_bytes = bytearray()
+        while 1:
+            data_pack = self.recive_packet(mode, initial_recive)
+            if data_pack:
+                file_bytes = file_bytes + data_pack
+            initial_recive = ser.read()
+            if initial_recive == EOT:
+                break
+        ser.write(ACK)
+        print(file_bytes)
+        f = open(self.filename, "wb")
+        f.write(file_bytes)
+        f.close()
 
-    # Główne funkcje
-    def sendFile(self):
-        root.quit()
+    def recive_packet(self,mode, initial_recive):
+        recived_header = bytearray()
+        recived_header += initial_recive
+        recived_header += ser.read()
+        recived_header += ser.read()
+        packet = self.recive_data_packet()
+        if self.check_packet(mode, packet):
+            return packet
+        return False
 
-    def receiveFile(self):
-        root.quit()
+    def recive_data_packet(self):
+        packet_arr = bytearray()
+        for byte in range(128):
+            packet_arr += ser.read()
+        return packet_arr
+
+    # Sprawdzanie poprawności odebranego pakietu
+    def check_packet(self, mode, packet):
+        if mode == NAK:
+            check = bytearray()
+            check += ser.read()
+            selfcheck = bytearray()
+            selfcheck.append(self.checksuma(packet))
+            if selfcheck[0] == check[0]:
+                ser.write(ACK)
+                return True
+            else:
+                ser.write(NAK)
+                print(2)
+                return False
+        elif mode == C:
+            check = bytearray()
+            check += ser.read()
+            check += ser.read()
+            crc_16 = self.crc16_mine(packet)
+            for byte in range(2):
+                if crc_16[byte] != check[byte]:
+                    ser.write(NAK)
+                    return False
+                ser.write(ACK)
+                return True
+
+
 
 
 if __name__ == '__main__':
     root = tk.Tk()
-    root.title('Tytul')
+    root.title('XMODEM_TELEKOMUNIKACJA')
     app = SimpleguiApp(root)
     app.run()

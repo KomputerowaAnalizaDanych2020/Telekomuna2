@@ -13,13 +13,13 @@
         <property name="font">{times new roman} 16 {bold}</property>
         <property name="justify">center</property>
         <property name="takefocus">true</property>
-        <property name="text" translatable="yes">Tytul</property>
+        <property name="text" translatable="yes">XMODEM</property>
         <layout manager="grid">
           <property name="column">0</property>
           <property name="propagate">True</property>
           <property name="row">0</property>
           <property name="sticky">e</property>
-          <property type="row" id="0" name="pad">0</property>
+          <property id="0" name="pad" type="row">0</property>
         </layout>
       </object>
     </child>
@@ -60,19 +60,19 @@
               <object class="tk.Menu" id="menu1">
                 <child>
                   <object class="tk.Menuitem.Command" id="COM1button">
-                    <property name="command" type="command" cbtype="simple">choiceCOM1</property>
+                    <property cbtype="simple" name="command" type="command">choiceCOM1</property>
                     <property name="label" translatable="yes">COM1</property>
                   </object>
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="COM2button">
-                    <property name="command" type="command" cbtype="simple">choiceCOM2</property>
+                    <property cbtype="simple" name="command" type="command">choiceCOM2</property>
                     <property name="label" translatable="yes">COM2</property>
                   </object>
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="COM3button">
-                    <property name="command" type="command" cbtype="simple">choiceCOM3</property>
+                    <property cbtype="simple" name="command" type="command">choiceCOM3</property>
                     <property name="label" translatable="yes">COM3</property>
                   </object>
                 </child>
@@ -94,7 +94,7 @@
         </child>
         <child>
           <object class="ttk.Button" id="button3">
-            <property name="command" type="command" cbtype="simple">loadFile</property>
+            <property cbtype="simple" name="command" type="command">loadFile</property>
             <property name="compound">top</property>
             <property name="text" translatable="yes">Wybierz plik</property>
             <layout manager="grid">
@@ -146,13 +146,13 @@
               <object class="tk.Menu" id="menu2">
                 <child>
                   <object class="tk.Menuitem.Command" id="CRCbutton">
-                    <property name="command" type="command" cbtype="simple">choiceCRC</property>
+                    <property cbtype="simple" name="command" type="command">choiceCRC</property>
                     <property name="label" translatable="yes">CRC</property>
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="Paritybutton">
-                    <property name="command" type="command" cbtype="simple">choiceParity</property>
+                  <object class="tk.Menuitem.Command" id="Checksum">
+                    <property cbtype="simple" name="command" type="command">choicechecksum</property>
                     <property name="label" translatable="yes">Suma kontrolna</property>
                   </object>
                 </child>
@@ -162,7 +162,7 @@
         </child>
         <child>
           <object class="ttk.Button" id="button5">
-            <property name="command" type="command" cbtype="simple">saveFile</property>
+            <property cbtype="simple" name="command" type="command">saveFile</property>
             <property name="text" translatable="yes">Wybierz plik</property>
             <layout manager="grid">
               <property name="column">1</property>
@@ -202,24 +202,45 @@
               <object class="tk.Menu" id="menu3">
                 <child>
                   <object class="tk.Menuitem.Command" id="oneButton">
-                    <property name="command" type="command" cbtype="simple">one</property>
+                    <property cbtype="simple" name="command" type="command">one</property>
                     <property name="label" translatable="yes">1</property>
                   </object>
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="onePointFiveButton">
-                    <property name="command" type="command" cbtype="simple">onePointFive</property>
+                    <property cbtype="simple" name="command" type="command">onePointFive</property>
                     <property name="label" translatable="yes">1.5</property>
                   </object>
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="twoButton">
-                    <property name="command" type="command" cbtype="simple">two</property>
+                    <property cbtype="simple" name="command" type="command">two</property>
                     <property name="label" translatable="yes">2</property>
                   </object>
                 </child>
               </object>
             </child>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Label" id="label2">
+            <property name="text" translatable="yes">Szerokosc pasma</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="propagate">True</property>
+              <property name="row">6</property>
+              <property name="sticky">w</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Entry" id="baudrate">
+            <property name="text" translatable="yes">9600</property>
+            <layout manager="grid">
+              <property name="column">1</property>
+              <property name="propagate">True</property>
+              <property name="row">6</property>
+            </layout>
           </object>
         </child>
       </object>
@@ -313,7 +334,7 @@
         </layout>
         <child>
           <object class="ttk.Button" id="sendButton">
-            <property name="command" type="command" cbtype="simple">sendFile</property>
+            <property cbtype="simple" name="command" type="command">sendFile</property>
             <property name="text" translatable="yes">Wyslij</property>
             <layout manager="grid">
               <property name="column">0</property>
@@ -336,7 +357,7 @@
         </layout>
         <child>
           <object class="ttk.Button" id="receiveButton">
-            <property name="command" type="command" cbtype="simple">receiveFile</property>
+            <property cbtype="simple" name="command" type="command">receiveFile</property>
             <property name="text" translatable="yes">Odbierz</property>
             <layout manager="grid">
               <property name="column">0</property>
