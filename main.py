@@ -2,6 +2,7 @@ from crccheck.crc import CrcXmodem
 import serial
 import time
 
+# Domyślna konfiguracja
 ser = serial.Serial(
     port='COM2',
     baudrate=9600,
@@ -11,6 +12,7 @@ ser = serial.Serial(
     timeout=1
 )
 
+# Znaki sterujące
 SOH = bytearray.fromhex("01")
 EOT = bytearray.fromhex("04")
 ACK = bytearray.fromhex("06")
@@ -41,10 +43,12 @@ def crc16(data: bytearray, poly=0x1021):
     return crc & 0xFFFF
 
 
+# Podział danych na pakiety
 def split_data(data_bytes):
     packets = []
     for packetnr in range(int(len(data_bytes) / 128) + (len(data_bytes) % 128 > 0)):
         packetarray = bytearray()
+        # Dopełniamy do pełnych pakietów za pomocą "0"
         for byte in range(128):
             if byte + 128 * packetnr < len(data_bytes):
                 packetarray.append(data_bytes[byte + 128 * packetnr])
@@ -54,6 +58,7 @@ def split_data(data_bytes):
     return packets
 
 
+# Odczyt z pliku
 def read_file(readpath):
     f = open(readpath, "rb")
     bytesfile = f.read()
@@ -70,6 +75,7 @@ def crc16_mine(packet_to_check):
     return checkarray
 
 
+# Funkcja służąca wysyłaniu pakietu
 def send_packet(packet_to_send, numberp, mode):
     while True:
         header = bytearray()
@@ -93,7 +99,9 @@ def send_packet(packet_to_send, numberp, mode):
             break
 
 
+# Główna funkcja odpowiadająca za przesył pliku
 def send_data(readpath):
+    # Zczytujemy dane pliku i dzielimy na pakiety
     databytes = read_file(readpath)
     returnetpackets = split_data(databytes)
     packet_number = 0
@@ -107,9 +115,11 @@ def send_data(readpath):
         ser.flush()
         send_packet(bitpack, packet_number, mode)
         packet_number += 1
+    # Po zakończeniu transmisji wysyłamy sygnał End Of Transmission
     ser.write(EOT)
 
 
+# Początek odbioru
 def start_recive(mode):
     while 1:
         time.sleep(1)
@@ -153,6 +163,7 @@ def recive_data_packet():
     return packet_arr
 
 
+# Sprawdzanie poprawności odebranego pakietu
 def check_packet(mode, packet):
     if mode == NAK:
         check = bytearray()

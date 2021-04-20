@@ -34,12 +34,13 @@ CAN = bytearray.fromhex("18")
 C = bytearray.fromhex("43")
 
 '''
-def read_file():
-    f = open(path, "rb")
-    bytesfile=f.read()
-    return bytesfile
+V
+def read_file(self):
+     f = open(root.filename, "rb")
+     bytesfile = f.read()
+     return bytesfile
 
-
+V
 # Parzystość bitów
 def checksuma(data: bytearray):
     temp_sum = 0
@@ -130,6 +131,7 @@ ser.write(EOT)
 # Klasa GUI
 class SimpleguiApp:
     def __init__(self, parent):
+        self.filename='test.txt'
         self.builder = builder = pygubu.Builder()
         builder.add_resource_path(PROJECT_PATH)
         builder.add_from_file(PROJECT_UI)
@@ -158,6 +160,87 @@ class SimpleguiApp:
 
     def two(self):
         ser.stopbits = serial.STOPBITS_TWO
+
+    '''
+    # Funkcja czytająca z pliku
+    def read_file(self):
+        f = open(root.filename, "rb")
+        bytesfile = f.read()
+        return bytesfile
+
+    # Funkcja wysyłająca plik
+    def sendFile(self):
+        crcinst = CrcXmodem()
+        path = 'test.txt'
+        databytes = root.read_file()
+        returnetpackets = root.split_data(root, databytes)
+        packet_number = 0
+        for bitpack in returnetpackets:
+            # print(bitpack)
+            # print(crc16(bitpack))
+            while 1:
+
+                if ser.read() == C:
+                    print(ser.read())
+                    root.send_packet(bitpack, packet_number)
+                    break
+            packet_number += 1
+        ser.write(EOT)
+
+    # Podział danych na pakiety
+    def split_data(self, data_bytes):
+        packets = []
+        for packetnr in range(int(len(data_bytes) / 128) + (len(data_bytes) % 128 > 0)):
+            packetarray = bytearray()
+            for byte in range(128):
+                if (byte + 128 * packetnr < len(data_bytes)):
+                    packetarray.append(data_bytes[byte + 128 * packetnr])
+                else:
+                    packetarray.append(0)
+            packets.append(packetarray)
+        return packets
+
+    def send_packet(self, packet_to_send, numberp):
+        while True:
+            header = bytearray()
+            header.append(int.from_bytes(SOH, 'big'))
+            header.append(numberp + 1)
+            header.append(254 - numberp)
+            suma = crcinst.final()
+            crcinst.process(packet_to_send)
+            print(suma)
+            print(crcinst.finalhex())
+            full = header + packet_to_send
+            full.append((suma >> 8) & 0xff)
+            full.append(suma & 0xff)
+            ser.write(full)
+            print(full)
+            print(len(full))
+            ser.flush()
+            answer = ser.read()
+            print(answer)
+            if answer == ACK:
+                break
+            if answer == CAN:
+                break
+
+            # print(numberp)
+
+    def crc16(self, data: bytearray, poly=0x1021):
+        crc = 0x0000
+        for b in data:
+            cur_byte = 0xFF & b
+            for _ in range(0, 8):
+                if (crc & 0x0001) ^ (cur_byte & 0x0001):
+                    crc = (crc >> 1) ^ poly
+                else:
+                    crc >>= 1
+                cur_byte >>= 1
+        crc = (~crc & 0xFFFF)
+        crc = (crc << 8) | ((crc >> 8) & 0xFF)
+
+        return crc & 0xFFFF
+    '''
 
     # Wybór pliku, na którym operujemy
     def loadFile(self):
