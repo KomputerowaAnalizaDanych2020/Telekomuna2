@@ -1,5 +1,4 @@
-from crccheck.crc import Crc32, CrcXmodem
-from crccheck.checksum import Checksum32
+from crccheck.crc import CrcXmodem
 import serial
 import time
 
@@ -12,17 +11,18 @@ ser = serial.Serial(
     timeout=1
 )
 
-SOH=bytearray.fromhex("01")
-EOT=bytearray.fromhex("04")
-ACK=bytearray.fromhex("06")
-NAK=bytearray.fromhex("15")
-CAN=bytearray.fromhex("18")
-C=bytearray.fromhex("43")
+SOH = bytearray.fromhex("01")
+EOT = bytearray.fromhex("04")
+ACK = bytearray.fromhex("06")
+NAK = bytearray.fromhex("15")
+CAN = bytearray.fromhex("18")
+C = bytearray.fromhex("43")
+
 
 def checksuma(data: bytearray):
-    temp_sum =0
+    temp_sum = 0
     for byte in data:
-        temp_sum+=int(byte)
+        temp_sum += int(byte)
     return temp_sum % 256
 
 
@@ -42,25 +42,26 @@ def crc16(data: bytearray, poly=0x1021):
 
 
 def split_data(data_bytes):
-    packets=[]
-    for packetnr in range(int(len(data_bytes)/128) + (len(data_bytes)%128 > 0)):
+    packets = []
+    for packetnr in range(int(len(data_bytes) / 128) + (len(data_bytes) % 128 > 0)):
         packetarray = bytearray()
         for byte in range(128):
-            if(byte+128*packetnr<len(data_bytes)):
-                packetarray.append(data_bytes[byte+128*packetnr])
+            if byte + 128 * packetnr < len(data_bytes):
+                packetarray.append(data_bytes[byte + 128 * packetnr])
             else:
                 packetarray.append(0)
         packets.append(packetarray)
     return packets
 
 
-def read_file(path):
-    f = open(path, "rb")
-    bytesfile=f.read()
+def read_file(readpath):
+    f = open(readpath, "rb")
+    bytesfile = f.read()
     return bytesfile
 
+
 def crc16_mine(packet_to_check):
-    checkarray=bytearray()
+    checkarray = bytearray()
     crcinst = CrcXmodem()
     crcinst.process(packet_to_check)
     suma = crcinst.final()
@@ -69,16 +70,16 @@ def crc16_mine(packet_to_check):
     return checkarray
 
 
-def send_packet(packet_to_send,numberp,mode):
+def send_packet(packet_to_send, numberp, mode):
     while True:
         header = bytearray()
-        header.append(int.from_bytes(SOH,'big'))
-        header.append(numberp+1)
-        header.append(254-numberp)
-        full=header+packet_to_send
-        if mode==C:
-            full=full+crc16_mine(packet_to_send)
-        if mode==NAK:
+        header.append(int.from_bytes(SOH, 'big'))
+        header.append(numberp + 1)
+        header.append(254 - numberp)
+        full = header + packet_to_send
+        if mode == C:
+            full = full + crc16_mine(packet_to_send)
+        if mode == NAK:
             full.append(checksuma(packet_to_send))
         ser.write(full)
         print(full)
@@ -92,23 +93,22 @@ def send_packet(packet_to_send,numberp,mode):
             break
 
 
-path = 'test1.bmp'
-
-def send_data(path):
-    databytes = read_file(path)
+def send_data(readpath):
+    databytes = read_file(readpath)
     returnetpackets = split_data(databytes)
     packet_number = 0
-    initialAnswer=ser.read()
-    while initialAnswer!=C and initialAnswer!=NAK:
-        initialAnswer=ser.read()
-        print(initialAnswer)
+    initial_answer = ser.read()
+    while initial_answer != C and initial_answer != NAK:
+        initial_answer = ser.read()
+        print(initial_answer)
         continue
-    mode=initialAnswer
+    mode = initial_answer
     for bitpack in returnetpackets:
         ser.flush()
-        send_packet(bitpack,packet_number,mode)
+        send_packet(bitpack, packet_number, mode)
         packet_number += 1
     ser.write(EOT)
+
 
 def start_recive(mode):
     while 1:
@@ -119,65 +119,67 @@ def start_recive(mode):
             return initial_recive
 
 
-def recive_data(path,mode):
-    initial_recive=start_recive(mode)
-    file_bytes=bytearray()
+def recive_data(savepath, mode):
+    initial_recive = start_recive(mode)
+    file_bytes = bytearray()
     while 1:
-        data_pack=recive_packet(mode,initial_recive)
+        data_pack = recive_packet(mode, initial_recive)
         if data_pack:
-            file_bytes=file_bytes+data_pack
-        initial_recive=ser.read()
-        if initial_recive==EOT:
+            file_bytes = file_bytes + data_pack
+        initial_recive = ser.read()
+        if initial_recive == EOT:
             break
     print(file_bytes)
-    f = open("sample.bmp", "wb")
+    f = open(savepath, "wb")
     f.write(file_bytes)
     f.close()
 
 
-def recive_packet(mode,initial_recive):
+def recive_packet(mode, initial_recive):
     recived_header = bytearray()
-    recived_header+=initial_recive
-    recived_header+=ser.read()
-    recived_header+=ser.read()
+    recived_header += initial_recive
+    recived_header += ser.read()
+    recived_header += ser.read()
     packet = recive_data_packet()
-    if check_packet(mode, packet) == True:
+    if check_packet(mode, packet):
         return packet
     return False
 
 
 def recive_data_packet():
-    packet_arr=bytearray()
+    packet_arr = bytearray()
     for byte in range(128):
-        packet_arr+=ser.read()
+        packet_arr += ser.read()
     return packet_arr
 
 
-def check_packet(mode,packet):
+def check_packet(mode, packet):
     if mode == NAK:
-        check=bytearray()
-        check+=ser.read()
-        selfcheck=bytearray()
+        check = bytearray()
+        check += ser.read()
+        selfcheck = bytearray()
         selfcheck.append(checksuma(packet))
-        if selfcheck[0]==check[0]:
+        if selfcheck[0] == check[0]:
             ser.write(ACK)
-            print(1)
             return True
         else:
             ser.write(NAK)
             print(2)
             return False
     elif mode == C:
-        check=bytearray()
-        check+=ser.read()
-        check+=ser.read()
-        crc16=crc16_mine(packet)
+        check = bytearray()
+        check += ser.read()
+        check += ser.read()
+        crc_16 = crc16_mine(packet)
         for byte in range(2):
-            if crc16[byte]!=check[byte]:
+            if crc_16[byte] != check[byte]:
                 ser.write(NAK)
                 return False
             ser.write(ACK)
             return True
 
 
-recive_data(path,C)
+pathw = 'odb.bmp'
+pathr = 'test1.bmp'
+recive_data(pathw, NAK)
+#send_data(pathr)
