@@ -4,10 +4,14 @@
       <w>bitpack</w>
       <w>checksuma</w>
       <w>databytes</w>
+      <w>podpis</w>
       <w>readpath</w>
       <w>recive</w>
       <w>returnetpackets</w>
       <w>savepath</w>
+      <w>stopbit</w>
+      <w>szerokosc</w>
+      <w>tryb</w>
     </words>
   </dictionary>
 </component>

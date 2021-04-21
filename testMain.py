@@ -90,6 +90,8 @@ class SimpleguiApp:
     def choiceCRC(self):
         self.choicemode=C
         print("TRYB CRC16")
+        root.lab
+        root.update()
 
     def choicechecksum(self):
         self.choicemode=NAK
@@ -141,6 +143,8 @@ class SimpleguiApp:
             answer = ser.read()
             #print(answer)
             if answer == ACK:                                           #Po wysłaniu pakiet sprawdzamy odpowiedz
+                print("Wysłano pakiet nr ")
+                print(header[1])
                 break                                                   #Jeśli ACK lub CAN przerywamy transmisje
             if answer == CAN:                                           #Jeśli NAK ponawiamy transmisje
                 break
@@ -162,6 +166,8 @@ class SimpleguiApp:
             packet_number += 1
                                                 # Po zakończeniu transmisji wysyłamy sygnał End Of Transmission
         ser.write(EOT)
+        if(ser.read())==ACK:
+            print("100% danych wysłano poprawnie")
 
     # Funkcja licząca CRC
 
@@ -217,6 +223,7 @@ class SimpleguiApp:
             if initial_recive == EOT:                                   #do otrzymania znaku EOT
                 break
         ser.write(ACK)
+        print("100% danych otrzymano poprawnie\n Plik ma postać: ")
         print(file_bytes)                                               #zapis do pliku
         f = open(self.filename, "wb")
         f.write(file_bytes)
@@ -229,6 +236,8 @@ class SimpleguiApp:
         recived_header += ser.read()
         packet = self.recive_data_packet()                              #dane
         if self.check_packet(mode, packet):                             #kontrola
+            print("Otrzymano pakiet nr ")
+            print(recived_header[1])
             return packet
         return False
 
