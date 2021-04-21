@@ -35,7 +35,7 @@ C = bytearray.fromhex("43")
 
 
                                                                                                 # Klasa GUI
-class SimpleguiApp:
+class X:
     def __init__(self, parent):
         self.filename='test.txt'
         self.choicemode=NAK
