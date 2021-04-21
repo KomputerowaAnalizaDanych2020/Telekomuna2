@@ -113,9 +113,11 @@ class XmodemGUI:
 
     def zatrzymaj(self):
         self.logi_text.delete('1.0', END)
+        self.progress['value'] = 0
         self.xmodem.cancel_transmision()
 
     def wyslijClick(self):
+        self.progress['value'] = 0
         if self.filename:
             ser.baudrate = int(self.szerokosc_entry.get())
             self.odbierz_button.config(state="disabled")
@@ -134,6 +136,7 @@ class XmodemGUI:
         self.logi_text.see("end")
 
     def odbierzClick(self):
+        self.progress['value'] = 0
         if self.filename:
             ser.baudrate = int(self.szerokosc_entry.get())
             self.odbierz_button.config(state="disabled")
@@ -260,8 +263,10 @@ class ProtocolX:
         progress = len(returnetpackets)
         current_proggress = 0
         packet_number = 1
+        ser.flush()
         initial_answer = ser.read()  # Czekamy na inicjalizacje transmisji przez odbiornik
         while initial_answer != C and initial_answer != NAK:
+            ser.flush()
             initial_answer = ser.read()
             print(initial_answer)
             continue
@@ -404,12 +409,4 @@ class ProtocolX:
 app = XmodemGUI()
 app.start_gui()
 
-"""
-mybutton1 = Button(root,text=" Test !")
-mybutton1.grid(row=0, column=0)
-mybutton2 = Button(root,text=" Test2 !",pady=50)
-mybutton2.grid(row=1, column=1)
-e = Entry(root)
-e.grid(row=2,column=2)
 
-"""
