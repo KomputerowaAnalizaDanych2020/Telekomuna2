@@ -158,6 +158,7 @@ class X:
         while initial_answer != C and initial_answer != NAK:
             initial_answer = ser.read()
             print(initial_answer)
+
             continue
         mode = initial_answer                                   # Wybór trybu odczytanego z odbiornika
         for bitpack in returnetpackets:                         # Wysył kolejnych pakietów

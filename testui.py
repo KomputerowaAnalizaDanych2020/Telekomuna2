@@ -18,6 +18,7 @@ ser = serial.Serial(
     bytesize=serial.EIGHTBITS,
     timeout=2
 )
+STX = bytearray.fromhex("02")
 SOH = bytearray.fromhex("01")
 EOT = bytearray.fromhex("04")
 ACK = bytearray.fromhex("06")
@@ -37,6 +38,7 @@ class XmodemGUI:
         self.root.title("Xmodem 229952|230039")
         self.filename = None
         self.xmodem = ProtocolX(self)
+        self.send_mode = bytearray()
 
         self.com_port = StringVar()
         self.com_port.set("COM2")
@@ -108,6 +110,10 @@ class XmodemGUI:
         self.progress = ttk.Progressbar(self.root, orient=HORIZONTAL, length=500, mode='determinate')
         self.progress.grid(row=11, column=1, columnspan=4, sticky="E")
 
+        self.mode1k = Checkbutton(self.root, text="Tryb 1K", font=(None, 12),
+                                  variable=self.send_mode, onvalue=STX, offvalue=SOH)
+        self.mode1k.grid(row=11, column=0, columnspan=2, sticky="S")
+
     def dodajprocent(self, value):
         self.progress['value'] = value
 
@@ -120,6 +126,7 @@ class XmodemGUI:
         self.progress['value'] = 0
         if self.filename:
             ser.baudrate = int(self.szerokosc_entry.get())
+            self.xmodem.change_send_mode(self.send_mode)
             self.odbierz_button.config(state="disabled")
             self.wyslij_button.config(state="disabled")
             self.logi_text.delete(1.0, END)
@@ -183,9 +190,18 @@ class XmodemGUI:
 
 class ProtocolX:
     def __init__(self, gui):
+        self.send_mode = SOH
         self.stop = False
         self.gui = gui
         self.choicemode = NAK
+        self.packetlen = 1024
+    def change_send_mode(self,send_mode):
+
+        self.send_mode=send_mode
+        if self.send_mode == STX:
+            self.packetlen=1024
+        else:
+            self.packetlen=128
 
     def setFileName(self, filename):
         self.filename = filename
@@ -214,11 +230,11 @@ class ProtocolX:
 
     def split_data(self, data_bytes):  # Pakiet danych 128 bajty
         packets = []
-        for packetnr in range(int(len(data_bytes) / 128) + (len(data_bytes) % 128 > 0)):
+        for packetnr in range(int(len(data_bytes) / self.packetlen) + (len(data_bytes) % self.packetlen > 0)):
             packetarray = bytearray()
-            for byte in range(128):
-                if (byte + 128 * packetnr < len(data_bytes)):
-                    packetarray.append(data_bytes[byte + 128 * packetnr])
+            for byte in range(self.packetlen):
+                if (byte + self.packetlen * packetnr < len(data_bytes)):
+                    packetarray.append(data_bytes[byte + self.packetlen * packetnr])
                 else:
                     packetarray.append(0)
             packets.append(packetarray)  # Zwraca liste pakietow danych
@@ -233,7 +249,7 @@ class ProtocolX:
                 ser.write(CAN)
                 self.stop = False
                 return False
-            header.append(int.from_bytes(SOH, 'big'))
+            header.append(int.from_bytes(self.send_mode, 'big'))
             header.append(numberp)
             header.append(255 - numberp)
             full = header + packet_to_send

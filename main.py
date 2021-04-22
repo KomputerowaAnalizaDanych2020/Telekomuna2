@@ -37,7 +37,7 @@ class XmodemGUI:
         self.mode.set("NAK")
         self.root.title("Xmodem 229952|230039")
         self.filename = None
-        self.send_mode = bytearray()
+        self.send_mode = IntVar()
         self.xmodem = ProtocolX(self)
 
         self.com_port = StringVar()
@@ -112,7 +112,7 @@ class XmodemGUI:
         self.progress.grid(row=11, column=1, columnspan=4, sticky="E")
 
         self.mode1k = Checkbutton(self.root, text = "Tryb 1K", font=(None,12),
-                                  variable=self.send_mode,onvalue=STX, offvalue=SOH)
+                                  variable=self.send_mode)
         self.mode1k.grid(row=11, column=0, columnspan=2,sticky="S")
 
     def dodajprocent(self, value):
@@ -127,7 +127,11 @@ class XmodemGUI:
         self.progress['value'] = 0
         if self.filename:
             ser.baudrate = int(self.szerokosc_entry.get())
-            self.xmodem.change_send_mode(self.send_mode)
+            print(self.send_mode.get())
+            if self.send_mode.get()==0:
+                self.xmodem.change_send_mode(SOH)
+            else:
+                self.xmodem.change_send_mode(STX)
             self.odbierz_button.config(state="disabled")
             self.wyslij_button.config(state="disabled")
             self.logi_text.delete(1.0, END)
@@ -195,14 +199,15 @@ class ProtocolX:
         self.stop = False
         self.gui = gui
         self.choicemode = NAK
-        self.packetlen=1024
-    def change_send_mode(self,send_mode):
+        self.send_packet_len=128
+        self.recive_packet_len=128
+    def change_send_mode(self,send_mode1):
 
-        self.send_mode=send_mode
+        self.send_mode=send_mode1
         if self.send_mode == STX:
-            self.packetlen=1024
+            self.send_packet_len=1024
         else:
-            self.packetlen=128
+            self.send_packet_len=128
 
     def setFileName(self, filename):
         self.filename = filename
@@ -231,11 +236,11 @@ class ProtocolX:
 
     def split_data(self, data_bytes):  # Pakiet danych 128 bajty
         packets = []
-        for packetnr in range(int(len(data_bytes) / self.packetlen) + (len(data_bytes) % self.packetlen > 0)):
+        for packetnr in range(int(len(data_bytes) / self.send_packet_len) + (len(data_bytes) % self.send_packet_len > 0)):
             packetarray = bytearray()
-            for byte in range(self.packetlen):
-                if (byte + self.packetlen * packetnr < len(data_bytes)):
-                    packetarray.append(data_bytes[byte + self.packetlen * packetnr])
+            for byte in range(self.send_packet_len):
+                if (byte + self.send_packet_len * packetnr < len(data_bytes)):
+                    packetarray.append(data_bytes[byte + self.send_packet_len * packetnr])
                 else:
                     packetarray.append(0)
             packets.append(packetarray)  # Zwraca liste pakietow danych
@@ -248,16 +253,20 @@ class ProtocolX:
             self.gui.root.update()
             if self.stop:
                 ser.write(CAN)
+                ser.write(CAN)
                 self.stop = False
                 return False
-            header.append(int.from_bytes(self.send_mode, 'big'))
+            header.append(int.from_bytes(self.send_mode,'big'))
             header.append(numberp)
             header.append(255 - numberp)
             full = header + packet_to_send
             if mode == C:  # Tworzymy pakiet kontrolny
                 full = full + self.crc16_mine(packet_to_send)
+                print(full)
             if mode == NAK:
                 full.append(self.checksuma(packet_to_send))
+                print(full)
+
             ser.write(full)  # Wysyłamy nagłowek,pakiet danych
             # i pakiet kontrolny
             # print(full)
@@ -270,6 +279,7 @@ class ProtocolX:
             if answer == CAN:  # Jeśli NAK ponawiamy transmisje
                 break
             else:
+                print("dupa2")
                 print(answer)
         return True
 
@@ -285,9 +295,15 @@ class ProtocolX:
         print(initial_answer)
         while initial_answer != C and initial_answer != NAK:
             ser.flush()
+            self.gui.root.update()
+            if self.stop:
+                ser.write(CAN)
+                ser.write(CAN)
+                self.stop = False
+                return False
             initial_answer = ser.read()
             print(initial_answer)
-            print("dupa")
+            print("dupa1")
             continue
         mode = initial_answer  # Wybór trybu odczytanego z odbiornika
         for bitpack in returnetpackets:  # Wysył kolejnych pakietów
@@ -347,6 +363,7 @@ class ProtocolX:
     def start_recive(self, mode):
         while 1:
             time.sleep(1)
+            ser.reset_input_buffer()
             ser.write(mode)
             initial_recive = ser.read()
             print(initial_recive)
@@ -377,12 +394,19 @@ class ProtocolX:
     def recive_packet(self, mode, initial_recive):  # odbierz pojedynczy pakiet
         while True:
             recived_header = bytearray()  # naglowek
+            if initial_recive==SOH:
+                print("dupa")
+                self.recive_packet_len = 128
+            else:
+                print("niedupa")
+                self.recive_packet_len = 1024
             recived_header += initial_recive
             recived_header += ser.read()
             recived_header += ser.read()
             packet = self.recive_data_packet()  # dane
             self.gui.root.update()
             if self.stop:
+                ser.write(CAN)
                 ser.write(CAN)
                 self.stop = False
                 return False
@@ -394,7 +418,7 @@ class ProtocolX:
 
     def recive_data_packet(self):  # odbierz pakiet danych
         packet_arr = bytearray()
-        for byte in range(self.packetlen):
+        for byte in range(self.recive_packet_len):
             self.gui.root.update()
             packet_arr += ser.read()
         return packet_arr
@@ -421,6 +445,7 @@ class ProtocolX:
             crc_16 = self.crc16_mine(packet)  # sprawdz crc
             for byte in range(2):
                 if crc_16[byte] != check[byte]:  # wyslij odpowiedz
+                    print(1)
                     ser.write(NAK)
                     return False
                 ser.write(ACK)
