@@ -269,17 +269,13 @@ class ProtocolX:
 
             ser.write(full)  # Wysyłamy nagłowek,pakiet danych
             # i pakiet kontrolny
-            # print(full)
-            # print(len(full))
             ser.flush()
             answer = ser.read()
-            # print(answer)
             if answer == ACK:  # Po wysłaniu pakiet sprawdzamy odpowiedz
                 break  # Jeśli ACK lub CAN przerywamy transmisje
             if answer == CAN:  # Jeśli NAK ponawiamy transmisje
                 break
             else:
-                print("dupa2")
                 print(answer)
         return True
 
@@ -292,7 +288,7 @@ class ProtocolX:
         packet_number = 1
         ser.flush()
         initial_answer = ser.read()  # Czekamy na inicjalizacje transmisji przez odbiornik
-        print(initial_answer)
+        #print(initial_answer)
         while initial_answer != C and initial_answer != NAK:
             ser.flush()
             self.gui.root.update()
@@ -302,8 +298,7 @@ class ProtocolX:
                 self.stop = False
                 return False
             initial_answer = ser.read()
-            print(initial_answer)
-            print("dupa1")
+            #print(initial_answer)
             continue
         mode = initial_answer  # Wybór trybu odczytanego z odbiornika
         for bitpack in returnetpackets:  # Wysył kolejnych pakietów
@@ -386,7 +381,7 @@ class ProtocolX:
             if data_pack == False:
                 return
         ser.write(ACK)
-        print("\n100% danych otrzymano poprawnie\n")
+        self.gui.printToLogi("\n100% danych otrzymano poprawnie\n")
         f = open(self.gui.filename, "wb")
         f.write(file_bytes)
         f.close()
@@ -395,10 +390,8 @@ class ProtocolX:
         while True:
             recived_header = bytearray()  # naglowek
             if initial_recive==SOH:
-                print("dupa")
                 self.recive_packet_len = 128
             else:
-                print("niedupa")
                 self.recive_packet_len = 1024
             recived_header += initial_recive
             recived_header += ser.read()
@@ -436,7 +429,6 @@ class ProtocolX:
                 return True
             else:  # Wyślij odpowiedz
                 ser.write(NAK)
-                print(2)
                 return False
         elif mode == C:  # tryb CRC
             check = bytearray()
@@ -445,7 +437,6 @@ class ProtocolX:
             crc_16 = self.crc16_mine(packet)  # sprawdz crc
             for byte in range(2):
                 if crc_16[byte] != check[byte]:  # wyslij odpowiedz
-                    print(1)
                     ser.write(NAK)
                     return False
                 ser.write(ACK)
