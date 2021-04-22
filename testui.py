@@ -16,7 +16,7 @@ ser = serial.Serial(
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
     bytesize=serial.EIGHTBITS,
-    timeout=1
+    timeout=2
 )
 SOH = bytearray.fromhex("01")
 EOT = bytearray.fromhex("04")
@@ -142,7 +142,7 @@ class XmodemGUI:
             self.odbierz_button.config(state="disabled")
             self.wyslij_button.config(state="disabled")
             self.root.update()
-            time.sleep(1)
+            time.sleep(1)                                                                           #possible mistake
             if self.mode.get() == "C":
                 self.xmodem.recive_data(C, self)
             else:
@@ -327,8 +327,10 @@ class ProtocolX:
 
     def start_recive(self, mode):
         while 1:
-            time.sleep(1)
+            time.sleep(0.1)
+            self.gui.root.update()
             ser.write(mode)
+            ser.flush()
             initial_recive = ser.read()
             if initial_recive == SOH:  # Jesli odbierzemy naglowek
                 return initial_recive  # przejdz do odbioru
@@ -348,7 +350,7 @@ class ProtocolX:
             if data_pack == False:
                 return
         ser.write(ACK)
-        print("\n100% danych otrzymano poprawnie\n")
+        self.gui.printToLogi("\n100% danych otrzymano poprawnie\n")
         f = open(self.gui.filename, "wb")
         f.write(file_bytes)
         f.close()
