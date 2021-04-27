@@ -51,7 +51,7 @@ class XmodemGUI:
         self.tryb_frame = LabelFrame(self.root, text="Tryb:", padx=40, pady=8)
         self.tryb_frame.grid(row=5, column=0, columnspan=2)
         self.tryb_CRC = Radiobutton(self.tryb_frame, text="CRC", variable=self.mode, value="C")
-        self.tryb_Checksum = Radiobutton(self.tryb_frame, text="Checksum", variable=self.mode, value="NAK")
+        self.tryb_Checksum = Radiobutton(self.tryb_frame, text="Suma kontrolna", variable=self.mode, value="NAK")
         self.tryb_CRC.grid(row=0, column=0)
         self.tryb_Checksum.grid(row=0, column=1)
 
